@@ -111,6 +111,7 @@ footer{text-align:center;color:#999;font-size:12px;padding:25px}
   <option>Jas</option>
 </select>
 <button id="save">SAVE</button>
+ <button id="reset">RESET MY VOTES</button>
 </div>
 
 <footer>Walk, Metro or Uber. Don’t drink and drive.</footer>
@@ -249,17 +250,41 @@ const {
 
 const {
  getFirestore,
- collection,
- doc,
- setDoc,
- onSnapshot,
- serverTimestamp
+collection,
+doc,
+setDoc,
+deleteDoc,
+onSnapshot,
+serverTimestamp
 } = await import(
  "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"
 );
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+ document.querySelector("#reset").onclick = async () => {
+
+ const name = document.querySelector("#voter").value;
+
+ if (!name) {
+   alert("Choose your name first.");
+   return;
+ }
+
+ if (!confirm("Reset ALL votes for " + name + "?")) return;
+
+ const myVotes = votes.filter(
+   v => v.voter === name
+ );
+
+ for (const v of myVotes) {
+   await deleteDoc(
+     doc(db, "montrealVotes", clean(name) + "-" + v.slot)
+   );
+ }
+
+ alert(name + "'s votes have been reset.");
+};
 
 let voter = localStorage.getItem("voter") || "";
 let votes = [];
