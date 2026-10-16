@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Montréal Trip Vote</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:linear-gradient(135deg,#090713,#30103c,#073747);
+ color:white;
+ font:15px Arial,sans-serif;
+ min-height:100vh
+}
+main{max-width:760px;margin:auto;padding:15px}
+header{text-align:center;padding:20px 5px}
+h1{margin:0;color:#ff55bd;text-shadow:0 0 20px #ff55bd}
+header p{color:#bbb}
+.day{margin:25px 0}
+.day h2{
+ position:sticky;
+ top:0;
+ background:#090713ee;
+ padding:12px;
+ border-bottom:1px solid #555;
+ z-index:2
+}
+.slot{
+ background:#100d20dd;
+ border:1px solid #ffffff22;
+ border-radius:15px;
+ padding:12px;
+ margin:12px 0
+}
+.slot h3{color:#34e7ff;margin:0 0 8px}
+.option{
+ background:#1d1730;
+ border:1px solid #ffffff18;
+ border-radius:10px;
+ padding:10px;
+ margin:8px 0
+}
+.option.selected{border-color:#ff55bd}
+.name{font-weight:bold}
+.info{color:#aaa;font-size:12px;margin:4px 0 8px}
+.price{color:#ffd166}
+.actions{display:flex;align-items:center;gap:7px}
+a,button{
+ border:0;
+ border-radius:8px;
+ padding:8px 10px;
+ color:white;
+ font-weight:bold;
+ text-decoration:none
+}
+a{background:#343047}
+button{background:#a72cff;cursor:pointer}
+.count{color:#34e7ff;font-weight:bold}
+#login{
+ position:sticky;
+ bottom:8px;
+ display:flex;
+ gap:8px;
+ background:#090713ee;
+ padding:10px;
+ border-radius:12px
+}
+input{
+ flex:1;
+ min-width:0;
+ padding:10px;
+ border-radius:8px;
+ border:1px solid #555;
+ background:#201932;
+ color:white;
+ font-size:16px
+}
+#save{background:#34e7ff;color:#071015}
+#status{text-align:center;color:#34e7ff;font-size:12px}
+footer{text-align:center;color:#999;font-size:12px;padding:25px}
+</style>
+</head>
+
+<body>
+<main>
+
+<header>
+<h1>🍸 MONTRÉAL WEEKEND 🪩</h1>
+<p>Oct 16–19 • Six guys • Vote once per section</p>
+<p>$ cheap • $$ moderate • $$$ expensive</p>
+</header>
+
+<div id="status">Connecting votes…</div>
+<div id="app"></div>
+
+<div id="login">
+<input id="voter" placeholder="Your name">
+<button id="save">SAVE</button>
+</div>
+
+<footer>Walk, Metro or Uber. Don’t drink and drive.</footer>
+
+<script type="module">
+
+const firebaseConfig = {
+ apiKey: "PASTE_HERE",
+ authDomain: "PASTE_HERE",
+ projectId: "PASTE_HERE",
+ storageBucket: "PASTE_HERE",
+ messagingSenderId: "PASTE_HERE",
+ appId: "PASTE_HERE"
+};
+
+const trip = [
+{
+ day:"FRIDAY • OLD MONTRÉAL",
+ slots:[
+  {
+   title:"Dinner",
+   options:[
+    ["Mano Cornuto","Italian • short Uber","$$","988 Rue Ottawa Montreal"],
+    ["Schwartz’s Deli","Smoked meat","$","3895 Boulevard Saint-Laurent Montreal"],
+    ["Chinatown","Budget food crawl","$","Chinatown Montreal"]
+   ]
+  },
+  {
+   title:"Cocktails",
+   options:[
+    ["The Coldroom","Hidden bar • walk","$$","The Coldroom Montreal"],
+    ["Cloakroom Bar","Tiny cocktail bar","$$$","2175 Rue de la Montagne Montreal"],
+    ["Philemon","Old Montréal • walk","$$","111 Rue Saint-Paul O Montreal"]
+   ]
+  },
+  {
+   title:"Nightlife",
+   options:[
+    ["La Voûte","Club • walk","$$$","360 Rue Saint-Jacques Montreal"],
+    ["Le Bar Baby","Bar and club","$$","3002 Rue Saint-Antoine O Montreal"],
+    ["Crescent Street","Bar crawl","$$","Crescent Street Montreal"]
+   ]
+  }
+ ]
+},
+{
+ day:"SATURDAY • MAIN NIGHT",
+ slots:[
+  {
+   title:"Morning",
+   options:[
+    ["Old Port","Free walk","$","Old Port of Montreal"],
+    ["Bota Bota","Spa","$$$","Bota Bota Montreal"],
+    ["Sleep + breakfast","Hotel","$","Embassy Suites Montreal"]
+   ]
+  },
+  {
+   title:"Lunch",
+   options:[
+    ["Schwartz’s Deli","Smoked meat","$","3895 Boulevard Saint-Laurent Montreal"],
+    ["Mano Cornuto","Italian","$$","988 Rue Ottawa Montreal"],
+    ["Chinatown","Budget food","$","Chinatown Montreal"]
+   ]
+  },
+  {
+   title:"Afternoon",
+   options:[
+    ["Mount Royal","Lookout","$","Mount Royal Lookout Montreal"],
+    ["Bota Bota","Spa reset","$$$","Bota Bota Montreal"],
+    ["Old Port + nap","Easy option","$","Old Port of Montreal"]
+   ]
+  },
+  {
+   title:"Pre-club",
+   options:[
+    ["Atwater Cocktail Club","Group maximum six","$$$","512 Avenue Atwater Montreal"],
+    ["Cloakroom Bar","Arrive early","$$$","2175 Rue de la Montagne Montreal"],
+    ["Crescent Street","Pub crawl","$$","Crescent Street Montreal"]
+   ]
+  },
+  {
+   title:"Clubbing",
+   options:[
+    ["Le Bar Baby","Bar and club","$$","3002 Rue Saint-Antoine O Montreal"],
+    ["La Voûte","Closest club","$$$","360 Rue Saint-Jacques Montreal"],
+    ["Saint-Laurent","Club crawl","$$","Boulevard Saint-Laurent Montreal"]
+   ]
+  }
+ ]
+},
+{
+ day:"SUNDAY • RECOVERY",
+ slots:[
+  {
+   title:"Morning",
+   options:[
+    ["Bota Bota","Spa recovery","$$$","Bota Bota Montreal"],
+    ["Old Montréal","Coffee walk","$","Place Jacques-Cartier Montreal"],
+    ["Sleep in","Hotel","$","Embassy Suites Montreal"]
+   ]
+  },
+  {
+   title:"Afternoon",
+   options:[
+    ["Mount Royal","Views","$","Mount Royal Lookout Montreal"],
+    ["Old Port","Stay nearby","$","Old Port of Montreal"],
+    ["Underground City","Indoor option","$","Montreal Underground City"]
+   ]
+  },
+  {
+   title:"Dinner",
+   options:[
+    ["Mano Cornuto","Italian","$$","988 Rue Ottawa Montreal"],
+    ["Schwartz’s Deli","Smoked meat","$","3895 Boulevard Saint-Laurent Montreal"],
+    ["Chinatown","Budget food","$","Chinatown Montreal"]
+   ]
+  },
+  {
+   title:"Final night",
+   options:[
+    ["La Voûte","Club • walk","$$$","360 Rue Saint-Jacques Montreal"],
+    ["Atwater Cocktail Club","Cocktails","$$$","512 Avenue Atwater Montreal"],
+    ["Rue Saint-Paul","Nearby bar crawl","$$","Rue Saint-Paul O Montreal"]
+   ]
+  }
+ ]
+}
+];
+
+const {
+ initializeApp
+} = await import(
+ "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"
+);
+
+const {
+ getFirestore,
+ collection,
+ doc,
+ setDoc,
+ onSnapshot,
+ serverTimestamp
+} = await import(
+ "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"
+);
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+let voter = localStorage.getItem("voter") || "";
+let votes = [];
+
+document.querySelector("#voter").value = voter;
+
+document.querySelector("#save").onclick = () => {
+ voter = document.querySelector("#voter").value.trim();
+
+ if (!voter) {
+  alert("Enter your name");
+  return;
+ }
+
+ localStorage.setItem("voter", voter);
+ render();
+};
+
+const clean = text =>
+ text.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+
+const mapLink = place =>
+ "https://www.google.com/maps/search/?api=1&query=" +
+ encodeURIComponent(place);
+
+async function vote(slot, option) {
+ voter = document.querySelector("#voter").value.trim();
+
+ if (!voter) {
+  alert("Enter and save your name first");
+  return;
+ }
+
+ localStorage.setItem("voter", voter);
+
+ await setDoc(
+  doc(db,"montrealVotes",clean(voter)+"-"+slot),
+  {
+   voter,
+   slot,
+   option,
+   updated:serverTimestamp()
+  }
+ );
+}
+
+function render() {
+ let counts = {};
+ let mine = {};
+
+ votes.forEach(v => {
+  const key = v.slot+"-"+v.option;
+  counts[key] = (counts[key] || 0) + 1;
+
+  if (
+   voter &&
+   v.voter.toLowerCase() === voter.toLowerCase()
+  ) {
+   mine[v.slot] = v.option;
+  }
+ });
+
+ document.querySelector("#app").innerHTML =
+ trip.map((day,dayIndex) => `
+  <section class="day">
+   <h2>${day.day}</h2>
+
+   ${day.slots.map((slot,slotIndex) => {
+    const slotID = `d${dayIndex}s${slotIndex}`;
+
+    return `
+     <div class="slot">
+      <h3>${slot.title}</h3>
+
+      ${slot.options.map((option,optionIndex) => {
+       const optionID = `o${optionIndex}`;
+       const selected = mine[slotID] === optionID;
+
+       return `
+        <div class="option ${selected ? "selected" : ""}">
+         <div class="name">${option[0]}</div>
+
+         <div class="info">
+          ${option[1]} •
+          <span class="price">${option[2]}</span>
+         </div>
+
+         <div class="actions">
+          <a href="${mapLink(option[3])}" target="_blank">
+           MAP
+          </a>
+
+          <span class="count">
+           ${counts[slotID+"-"+optionID] || 0}
+          </span>
+
+          <button
+           data-slot="${slotID}"
+           data-option="${optionID}">
+           ${selected ? "VOTED" : "VOTE"}
+          </button>
+         </div>
+        </div>
+       `;
+      }).join("")}
+     </div>
+    `;
+   }).join("")}
+  </section>
+ `).join("");
+
+ document.querySelectorAll("[data-slot]").forEach(button => {
+  button.onclick = () =>
+   vote(button.dataset.slot,button.dataset.option);
+ });
+}
+
+onSnapshot(collection(db,"montrealVotes"), snapshot => {
+ votes = snapshot.docs.map(document => document.data());
+ document.querySelector("#status").textContent = "● LIVE VOTING";
+ render();
+});
+
+render();
+
+</script>
+</main>
+</body>
+</html>
